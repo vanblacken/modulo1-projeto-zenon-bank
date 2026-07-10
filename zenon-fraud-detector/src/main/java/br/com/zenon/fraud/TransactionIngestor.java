@@ -6,9 +6,7 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class TransactionIngestor
 	{
@@ -28,10 +26,7 @@ public class TransactionIngestor
 						if (lineNumber < 2) {
 							continue;
 						}
-
-						String[]    chunc       = line.split(",");
-						Transaction transaction = getTransaction(chunc);
-						transactions.add(transaction);
+						transactions.add(getTransaction(line).get());
 
 
 					}
@@ -43,38 +38,54 @@ public class TransactionIngestor
 
 		public List<Transaction> readFileNew(String fileName)
 			{
-				List<Transaction> transactions = new ArrayList<>();
-				Path              path         = Paths.get(fileName);
+				Path path = Paths.get(fileName);
 				try {
-					Files.readAllLines(path)
-					     .stream()
-					     .skip(1)
-					     .limit(1000)
-					     .forEach(line ->
-													{
-														String[]    chunc       = line.split(",");
-														Transaction transaction = getTransaction(chunc);
-														transactions.add(transaction);
-													});
+					return Files.readAllLines(path)
+					            .stream()
+					            .skip(1)
+					            .limit(1000)
+					            .map(this::getTransaction)
+					            .filter(Optional::isPresent)
+					            .map(Optional::get)
+					            .toList();
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
-
-				return transactions;
 			}
 
-		private Transaction getTransaction(String[] chunc)
+		private Optional<Transaction> getTransaction(String line)
 			{
-				return new Transaction(Integer.parseInt(chunc[0]),
-				                       TransactionType.valueOf(chunc[1]),
-				                       new BigDecimal(chunc[2]),
-				                       new TransactionCustomer(chunc[3],
-				                                               new BigDecimal(chunc[4]),
-				                                               new BigDecimal(chunc[5])),
-				                       new TransactionCustomer(chunc[6],
-				                                               new BigDecimal(chunc[7]),
-				                                               new BigDecimal(chunc[8])),
-				                       Boolean.parseBoolean(chunc[9]),
-				                       Boolean.parseBoolean(chunc[10]));
+				String[]              chunk   = line.split(",");
+				Optional<Transaction> retorno = Optional.empty();
+
+				try {
+					retorno = Optional.of(new Transaction(Integer.parseInt(chunk[0]),
+					                                      TransactionType.valueOf(chunk[1]),
+					                                      getBigDecimal(chunk[2]),
+					                                      new TransactionCustomer(chunk[3],
+					                                                              getBigDecimal(chunk[4]),
+					                                                              getBigDecimal(chunk[5])),
+					                                      new TransactionCustomer(chunk[6],
+					                                                              getBigDecimal(chunk[7]),
+					                                                              getBigDecimal(chunk[8])),
+					                                      Boolean.parseBoolean(chunk[9]),
+					                                      Boolean.parseBoolean(chunk[10])));
+
+				} catch (Exception e) {
+					IO.println(e.getMessage());
+				}
+				return retorno;
+			}
+
+		private static BigDecimal getBigDecimal(String chunk)
+			{
+				if (chunk == null || chunk.trim().isEmpty())
+					throw new RuntimeException("Valores não podem nullos ou vazios");
+				try {
+					return new BigDecimal(chunk);
+				} catch (NumberFormatException e) {
+					throw new RuntimeException("Valores da transaćão teem de ser números");
+				}
+
 			}
 	}
