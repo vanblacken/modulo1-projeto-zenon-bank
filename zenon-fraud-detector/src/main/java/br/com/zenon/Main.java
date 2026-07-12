@@ -1,8 +1,6 @@
 package br.com.zenon;
 
-import br.com.zenon.fraud.FraudAnalizer;
-import br.com.zenon.fraud.Transaction;
-import br.com.zenon.fraud.TransactionIngestor;
+import br.com.zenon.fraud.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,5 +23,22 @@ public class Main
 				IO.println("Valor Total de Fraudes: " + fraudAnalizer.totalFraudsValue()
 				                                                     .toPlainString());
 				IO.println("Quantidade Total de Fraudes por tipo : " + fraudAnalizer.countFraudsByType());
+
+				TransactionListRepository transactionListRepository = new TransactionListRepository(transactions);
+
+				long startTimeList = System.nanoTime();
+				transactionListRepository.findByOriginalName("C1231006815")
+				                         .ifPresentOrElse(IO::println, () -> IO.println("Transaćão não encontrada"));
+				long endTimeList = System.nanoTime();
+				IO.println("Tempo de execução da busca: " + (endTimeList - startTimeList) / 1000000.0);
+
+				TransactionMapRepository transactionMapRepository = new TransactionMapRepository(transactions);
+
+				startTimeList = System.nanoTime();
+				transactionListRepository.findByOriginalName("C1231006815")
+				                         .ifPresentOrElse(IO::println, () -> IO.println("Transaćão não encontrada"));
+				endTimeList = System.nanoTime();
+				IO.println("Tempo de execução da busca: " + (endTimeList - startTimeList) / 1000000.0);
+
 			}
 	}
