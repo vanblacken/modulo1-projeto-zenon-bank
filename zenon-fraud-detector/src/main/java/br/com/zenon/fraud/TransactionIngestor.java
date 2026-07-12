@@ -43,7 +43,7 @@ public class TransactionIngestor
 					return Files.readAllLines(path)
 					            .stream()
 					            .skip(1)
-					            .limit(1000)
+					            .limit(50000)
 					            .map(this::getTransaction)
 					            .filter(Optional::isPresent)
 					            .map(Optional::get)
@@ -68,8 +68,8 @@ public class TransactionIngestor
 					                                      new TransactionCustomer(chunk[6],
 					                                                              getBigDecimal(chunk[7]),
 					                                                              getBigDecimal(chunk[8])),
-					                                      Boolean.parseBoolean(chunk[9]),
-					                                      Boolean.parseBoolean(chunk[10])));
+					                                      "1".equals(chunk[9]),
+					                                      "1".equals(chunk[10])));
 
 				} catch (Exception e) {
 					IO.println(e.getMessage());
@@ -79,8 +79,10 @@ public class TransactionIngestor
 
 		private static BigDecimal getBigDecimal(String chunk)
 			{
-				if (chunk == null || chunk.trim().isEmpty())
+				if (chunk == null || chunk.trim()
+				                          .isEmpty()) {
 					throw new RuntimeException("Valores não podem nullos ou vazios");
+				}
 				try {
 					return new BigDecimal(chunk);
 				} catch (NumberFormatException e) {
