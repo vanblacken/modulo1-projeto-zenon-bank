@@ -6,7 +6,10 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Scanner;
 
 public class TransactionIngestor
 	{
@@ -46,7 +49,7 @@ public class TransactionIngestor
 					return Files.readAllLines(path)
 					            .stream()
 					            .skip(1)
-					            .limit(MAX_RECORDS_TO_PROCESS)
+					           // .limit(MAX_RECORDS_TO_PROCESS)
 					            .map(this::getTransaction)
 					            .filter(Optional::isPresent)
 					            .map(Optional::get)
@@ -80,7 +83,7 @@ public class TransactionIngestor
 				return retorno;
 			}
 
-		private static BigDecimal getBigDecimal(String chunk)
+		protected static BigDecimal getBigDecimal(String chunk)
 			{
 				if (chunk == null || chunk.trim()
 				                          .isEmpty()) {

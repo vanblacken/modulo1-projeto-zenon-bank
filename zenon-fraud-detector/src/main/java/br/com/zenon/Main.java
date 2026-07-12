@@ -3,7 +3,6 @@ package br.com.zenon;
 import br.com.zenon.fraud.*;
 
 import java.util.List;
-import java.util.Optional;
 
 public class Main
 	{
