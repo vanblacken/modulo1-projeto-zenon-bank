@@ -24,4 +24,9 @@ public class TransactionListRepository
 				                                                     .equals(orignName))
 				                   .findFirst();
 			}
+
+		@Override
+		public void save(Transaction transaction) {
+			this.transactions.add(transaction);
+		}
 	}

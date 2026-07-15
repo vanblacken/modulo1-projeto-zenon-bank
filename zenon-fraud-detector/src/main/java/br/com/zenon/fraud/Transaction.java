@@ -7,10 +7,10 @@ public record Transaction(int step,
                           TransactionType type,
                           BigDecimal amount,
                           TransactionCustomer origin,
-                          TransactionCustomer recipient,
-                          boolean isFraud,
-                          boolean isFlaggedFraud)
-	{
+						  TransactionCustomer recipient,
+						  boolean isFraud,
+						  boolean isFlaggedFraud)
+{
 //		public Transaction
 //			{
 //				if (step <= 0) {
