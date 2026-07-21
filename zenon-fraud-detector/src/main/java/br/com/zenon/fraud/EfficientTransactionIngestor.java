@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 public class EfficientTransactionIngestor {
 
     public static final int MAX_RECORDS_TO_PROCESS = 10_000;
-    private final Semaphore dbSemaphore = new Semaphore(100);
+    private final Semaphore dbSemaphore = new Semaphore(20);
 
     @Deprecated
     public List<Transaction> readFile(String fileName) {
