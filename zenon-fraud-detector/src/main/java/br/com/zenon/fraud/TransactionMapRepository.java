@@ -28,4 +28,9 @@ public class TransactionMapRepository
     public void save(Transaction transaction) {
         this.transactionsTransactionMap.putIfAbsent(transaction.origin().name(), transaction);
     }
+
+    @Override
+    public void saveAll(List<Transaction> transactions) {
+
+    }
 }

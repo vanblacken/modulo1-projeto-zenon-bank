@@ -29,4 +29,9 @@ public class TransactionListRepository
 		public void save(Transaction transaction) {
 			this.transactions.add(transaction);
 		}
+
+		@Override
+		public void saveAll(List<Transaction> transactions) {
+
+		}
 	}

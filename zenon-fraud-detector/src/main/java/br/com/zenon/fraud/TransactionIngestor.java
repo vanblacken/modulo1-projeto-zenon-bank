@@ -14,7 +14,7 @@ import java.util.Scanner;
 public class TransactionIngestor
 	{
 
-		public static final int MAX_RECORDS_TO_PROCESS = 100000;
+		public static final int MAX_RECORDS_TO_PROCESS = 10000;
 
 		@Deprecated
 		public List<Transaction> readFile(String fileName)
@@ -49,7 +49,7 @@ public class TransactionIngestor
 					return Files.readAllLines(path)
 					            .stream()
 					            .skip(1)
-					           // .limit(MAX_RECORDS_TO_PROCESS)
+					            .limit(MAX_RECORDS_TO_PROCESS)
 					            .map(this::getTransaction)
 					            .filter(Optional::isPresent)
 					            .map(Optional::get)

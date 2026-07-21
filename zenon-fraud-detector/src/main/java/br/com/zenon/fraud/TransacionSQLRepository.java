@@ -5,9 +5,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 public class TransacionSQLRepository implements TransactionRepository {
+
+    public static final int BATCH_SIZE = 1000;
 
     @Override
     public Optional<Transaction> findByOriginalName(String orignName) {
@@ -66,6 +69,64 @@ public class TransacionSQLRepository implements TransactionRepository {
             throw new RuntimeException(e);
         }
 
+    }
+
+    @Override
+    public void saveAll(List<Transaction> transactions) {
+        String sql = "INSERT INTO transactions (step, type, amount, name_origin, new_balance_origin, old_balance_origin," +
+                " name_recipient, old_balance_recipient, new_balance_recipient, is_fraud, is_flagged_fraud) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection connection = ConnectionFactory.getConnection();
+        try {
+            connection.setAutoCommit(false);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        try (
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            int i = 0;
+            for (Transaction transaction : transactions) {
+                IO.println("transaction: " + transaction);
+                preparedStatement.setInt(1, transaction.step());
+                preparedStatement.setString(2, transaction.type().name());
+                preparedStatement.setBigDecimal(3, transaction.amount());
+                preparedStatement.setString(4, transaction.origin().name());
+                preparedStatement.setBigDecimal(5, transaction.origin().oldBalance());
+                preparedStatement.setBigDecimal(6, transaction.origin().newBalance());
+                preparedStatement.setString(7, transaction.recipient().name());
+                preparedStatement.setBigDecimal(8, transaction.recipient().oldBalance());
+                preparedStatement.setBigDecimal(9, transaction.recipient().newBalance());
+                preparedStatement.setBoolean(10, transaction.isFraud());
+                preparedStatement.setBoolean(11, transaction.isFlaggedFraud());
+                preparedStatement.addBatch();
+                i++;
+                if (i % BATCH_SIZE == 0) {
+                    preparedStatement.executeBatch();
+                    connection.commit();
+                }
+            }
+            preparedStatement.executeBatch();
+            connection.commit();
+            connection.setAutoCommit(true);
+
+        } catch (Exception e) {
+            IO.println("Erro ao salvar transação: " + e.getMessage());
+            IO.println("Erro ao salvar transação: " + e.getCause());
+            IO.println("Erro ao salvar transação: " + e);
+            IO.println("Erro ao salvar transação: " + e.getClass());
+            IO.println("Erro ao salvar transação: " + e.getClass().getName());
+            IO.println("Erro ao salvar transação: " + e.getClass().getSimpleName());
+            IO.println("Erro ao salvar transação: " + e.getClass().getCanonicalName());
+            IO.println("Erro ao salvar transação: " + e.getClass().getTypeName());
+            IO.println("Erro ao salvar transação: " + e.getClass().getSuperclass());
+            try {
+                connection.rollback();
+                connection.commit();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            throw new RuntimeException(e);
+        }
     }
 
     private Transaction mapResultSetToTransaction(ResultSet rs) {
