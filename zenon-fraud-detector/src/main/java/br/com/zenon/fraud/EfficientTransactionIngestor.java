@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,6 +17,7 @@ import java.util.stream.Stream;
 public class EfficientTransactionIngestor {
 
     public static final int MAX_RECORDS_TO_PROCESS = 10_000;
+    private final Semaphore dbSemaphore = new Semaphore(100);
 
     @Deprecated
     public List<Transaction> readFile(String fileName) {
@@ -59,7 +61,7 @@ public class EfficientTransactionIngestor {
 
     public void readAsBatchFileNew(String fileName, Consumer<List<Transaction>> consumer) {
         Path path = Paths.get(fileName);
-        try (ExecutorService exe = Executors.newFixedThreadPool(10)) {
+        try (ExecutorService exe = Executors.newVirtualThreadPerTaskExecutor()) {
             try (Stream<String> lines = Files.lines(path)
             ) {
                 Iterator<String> iterator = lines.iterator();
@@ -68,11 +70,11 @@ public class EfficientTransactionIngestor {
                     iterator.next();
                 }
                 List<String> linesBatch = new ArrayList<>();
-                int count = 0;
+
                 while (iterator.hasNext()) {
                     String line = iterator.next();
                     linesBatch.add(line);
-                    count++;
+
                     if (linesBatch.size() == 4000) {
                         List<String> currentLineBatcher = List.copyOf(linesBatch);
                         exe.submit(() -> executeBatch(currentLineBatcher, consumer));
@@ -92,11 +94,20 @@ public class EfficientTransactionIngestor {
     }
 
     private void executeBatch(List<String> linesBatch, Consumer<List<Transaction>> consumer) {
-        consumer.accept(linesBatch.stream()
-                .map(this::getTransaction)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList()));
+
+        try {
+            dbSemaphore.acquire();
+            consumer.accept(linesBatch.stream()
+                    .map(this::getTransaction)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toList()));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } finally {
+            dbSemaphore.release();
+        }
     }
 
     private Optional<Transaction> getTransaction(String line) {

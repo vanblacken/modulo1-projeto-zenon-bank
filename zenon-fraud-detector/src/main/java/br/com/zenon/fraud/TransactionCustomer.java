@@ -4,8 +4,7 @@ import java.math.BigDecimal;
 
 public record TransactionCustomer(String name,
                                   BigDecimal oldBalance,
-                                  BigDecimal newBalance)
-	{
+                                  BigDecimal newBalance) {
 //		public TransactionCustomer
 //			{
 //				if (name == null) {
@@ -19,4 +18,4 @@ public record TransactionCustomer(String name,
 //				}
 //			}
 
-	}
+}
